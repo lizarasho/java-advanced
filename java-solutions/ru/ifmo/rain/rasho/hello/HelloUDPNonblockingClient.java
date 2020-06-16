@@ -103,7 +103,7 @@ public class HelloUDPNonblockingClient implements HelloClient {
         try {
             channel.send(Utils.newByteBuffer(requestBody), socketAddress);
         } catch (IOException e) {
-            throw new RuntimeException("Couldn't send request " + requestBody, e);
+            throw new RuntimeException("Couldn't send request " + requestBody + ": " + e.getMessage(), e);
         }
         buffer.flip();
         key.interestOps(SelectionKey.OP_READ);
@@ -146,11 +146,10 @@ public class HelloUDPNonblockingClient implements HelloClient {
         }
         if (Arrays.stream(args).anyMatch(Objects::isNull)) {
             throw new IllegalArgumentException("Invalid input format: all arguments must be non-null. " + MAIN_USAGE);
-        } else {
-            int port = Utils.getIntegerArgumentSafely(args, 1, "port", MAIN_USAGE);
-            int threadCount = Utils.getIntegerArgumentSafely(args, 3, "threads", MAIN_USAGE);
-            int requestCount = Utils.getIntegerArgumentSafely(args, 4, "requests", MAIN_USAGE);
-            new HelloUDPNonblockingClient().run(args[0], port, args[2], threadCount, requestCount);
         }
+        int port = Utils.getIntegerArgumentSafely(args, 1, "port", MAIN_USAGE);
+        int threadCount = Utils.getIntegerArgumentSafely(args, 3, "threads", MAIN_USAGE);
+        int requestCount = Utils.getIntegerArgumentSafely(args, 4, "requests", MAIN_USAGE);
+        new HelloUDPNonblockingClient().run(args[0], port, args[2], threadCount, requestCount);
     }
 }

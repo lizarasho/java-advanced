@@ -144,10 +144,9 @@ public class HelloUDPNonblockingServer implements HelloServer {
         }
         if (args[0] == null || args[1] == null) {
             throw new IllegalArgumentException("Invalid input format: all arguments must be non-null. " + MAIN_USAGE);
-        } else {
-            int port = Utils.getIntegerArgumentSafely(args, 0, "port", MAIN_USAGE);
-            int threadCount = Utils.getIntegerArgumentSafely(args, 1, "threads", MAIN_USAGE);
-            new HelloUDPNonblockingServer().start(port, threadCount);
         }
+        int port = Utils.getIntegerArgumentSafely(args, 0, "port", MAIN_USAGE);
+        int threadCount = Utils.getIntegerArgumentSafely(args, 1, "threads", MAIN_USAGE);
+        new HelloUDPNonblockingServer().start(port, threadCount);
     }
 }

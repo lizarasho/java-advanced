@@ -23,8 +23,7 @@ public class HelloUDPServer implements HelloServer {
     public void start(int port, int threads) {
         try {
             socket = new DatagramSocket(port);
-            executors = Executors.newSingleThreadExecutor();
-            listener = new ThreadPoolExecutor(
+            executors = new ThreadPoolExecutor(
                     threads,
                     threads,
                     0,
@@ -32,11 +31,12 @@ public class HelloUDPServer implements HelloServer {
                     new ArrayBlockingQueue<>(REQUESTS_LIMIT),
                     new ThreadPoolExecutor.DiscardPolicy()
             );
+            listener = Executors.newSingleThreadExecutor();
             int receiveBufferSize = socket.getReceiveBufferSize();
             listener.submit(() -> {
                 try {
                     while (!Thread.interrupted() && !socket.isClosed()) {
-                        final DatagramPacket request = HelloUDPUtils.newEmptyPacket(receiveBufferSize);
+                        final DatagramPacket request = Utils.newEmptyPacket(receiveBufferSize);
                         socket.receive(request);
                         executors.submit(sendResponse(request));
                     }
@@ -53,11 +53,11 @@ public class HelloUDPServer implements HelloServer {
 
     private Runnable sendResponse(DatagramPacket request) {
         return () -> {
-            final String requestBody = HelloUDPUtils.getPacketBody(request);
+            final String requestBody = Utils.getPacketBody(request);
             log("Request: " + requestBody);
-            String responseBody = HelloUDPUtils.getResponseBody(requestBody);
-            DatagramPacket response = HelloUDPUtils.newEmptyPacket(request.getSocketAddress());
-            HelloUDPUtils.setBody(response, HelloUDPUtils.getResponseBody(requestBody));
+            String responseBody = Utils.getResponseBody(requestBody);
+            DatagramPacket response = Utils.newEmptyPacket(request.getSocketAddress());
+            Utils.setBody(response, Utils.getResponseBody(requestBody));
             log("Response: " + responseBody);
             try {
                 socket.send(response);
@@ -88,12 +88,17 @@ public class HelloUDPServer implements HelloServer {
     }
 
     public static void main(String[] args) {
-        if (args == null || args.length != 2 || args[0] == null || args[1] == null) {
-            throw new IllegalArgumentException("Invalid input format: all arguments must be non-null. " + MAIN_USAGE);
-        } else {
-            int port = HelloUDPUtils.getIntegerArgumentSafely(args, 0, "port", MAIN_USAGE);
-            int threadCount = HelloUDPUtils.getIntegerArgumentSafely(args, 1, "threads", MAIN_USAGE);
-            new HelloUDPServer().start(port, threadCount);
+        if (args == null) {
+            throw new IllegalArgumentException("Expected non-null arguments. " + MAIN_USAGE);
         }
+        if (args.length != 2) {
+            throw new IllegalArgumentException("Expected 2 non-null arguments, found " + args.length + ". " + MAIN_USAGE);
+        }
+        if (args[0] == null || args[1] == null) {
+            throw new IllegalArgumentException("Invalid input format: all arguments must be non-null. " + MAIN_USAGE);
+        }
+        int port = Utils.getIntegerArgumentSafely(args, 0, "port", MAIN_USAGE);
+        int threadCount = Utils.getIntegerArgumentSafely(args, 1, "threads", MAIN_USAGE);
+        new HelloUDPNonblockingServer().start(port, threadCount);
     }
 }
